@@ -1,0 +1,2 @@
+/bin/ls src
+exit
