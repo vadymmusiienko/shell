@@ -12,7 +12,9 @@
  *       attributes be?
  */
 void userinput_init() {
-
+    input_length = 0;
+    num_tokens = 0;
+    tokens = NULL;
 }
 
 /*
@@ -21,46 +23,118 @@ void userinput_init() {
  * Hint: is there anything else that can be reused here?
  */
 void userinput_reset() {
-
+    if (tokens != NULL) {
+        free(tokens);
+    }
+    userinput_init();
 }
 
 /*
  * TODO: implement me!
- * 
+ *
  * Hint: reset all values... anything that was dynamically allocated should be
  *       freed!
  */
-void userinput_cleanup() {
-
-}
+void userinput_cleanup() { userinput_reset(); }
 
 /*
- * TODO: implement me!
- *
- * Hints:
- *   - user input may be messy with its whitespace, be sure the command is not
- *   - command should end with '\0'
- *   - don't forget about the error cases! what behaviors should be undefined?
+ * Remove extra whitespace and add '\0'
  */
 long handle_user_input(const char *user_input, long strlen, char **command) {
-    return 0;
+    if (strlen < 0 || !user_input || !command) {
+        return -1;
+    }
+
+    char *clean_input = malloc(strlen + 1); // + 1 for '\0'
+    if (clean_input == NULL) {
+        return -1;
+    }
+
+    long left = 0;
+    long right = 0;
+
+    // Skip leading spaces
+    while (right < strlen && user_input[right] == ' ') {
+        right++;
+    }
+
+    // Clean up the string
+    for (; right < strlen; ++right) {
+        char current_char = user_input[right];
+
+        // End of line
+        if (current_char == '\n') {
+            break;
+        }
+
+        // Copy the first whitespace and other chars
+        if (current_char != ' ' || user_input[right - 1] != ' ') {
+            clean_input[left] = current_char;
+            left++;
+        }
+    }
+
+    // Remove trailing space
+    if (left > 0 && clean_input[left - 1] == ' ') {
+        left--;
+    }
+
+    // End the string
+    clean_input[left] = '\0';
+
+    // Shrink space
+    char *optimized = realloc(clean_input, left);
+    if (optimized == NULL) {
+        return -1;
+    }
+    clean_input = optimized;
+
+    // Pass clean optimal string to the callee
+    *command = clean_input;
+
+    return left;
 }
 
 /*
- * TODO: implement me!
- *
- * Hints:
- *   - we assume that str is a clean string... given this, what error cases
- *     might occur?
- *   - think about tokens' type... we have a pointer to an array of strings
- *     (which are themselves arrays...) how big is the array of strings?
- *      --> you may need to dynamically resize the array
- *      --> see "man 3 malloc" for further hints
- *   - be sure to modify the input string so that each token ends with a NULL
- *     character!
+ * Tokenize a clean string
  */
 long tokenize_input(char *str, long strlen, char ***tokens) {
-    return 0;
+    if (strlen < 0 || !str || !tokens) {
+        return -1;
+    }
+
+    if (strlen == 0) {
+        *tokens = NULL;
+        return 0;
+    }
+
+    // Tokenize (spaces become '\0')
+    *tokens = malloc((strlen + 1) *
+                     sizeof(char *)); // Create pointers to every string
+    if (*tokens == NULL) {
+        return -1;
+    }
+    (*tokens)[0] = &str[0];
+
+    long num_tokens = 1;
+    for (long left = 0; left < strlen; ++left) {
+        if (str[left] == ' ') {
+            str[left] = '\0';
+            (*tokens)[num_tokens] = &str[left + 1];
+            num_tokens++;
+        }
+    }
+    (*tokens)[num_tokens] = NULL;
+
+    // Optimize space
+    char **tmp =
+        realloc(*tokens, (num_tokens + 1) * sizeof(char *)); // +1 for NULL
+    if (tmp == NULL) {
+        free(*tokens);
+        *tokens = NULL;
+        return -1;
+    }
+    *tokens = tmp;
+
+    return num_tokens;
 }
-
-
