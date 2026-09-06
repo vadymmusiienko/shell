@@ -6,21 +6,31 @@
 /*
  * TODO: implement me!
  */
-void exec_init(char *environment) {
-
-}
+void exec_init(char *environment) { env = environment; }
 
 /*
  * TODO: implement me!
  */
-void exec_cleanup() {
-
-}
+void exec_cleanup() { env = NULL; }
 
 /*
  * TODO: implement me!
  */
 pid_t execute_process(const char *command, char **argv) {
-    return (pid_t) -1;
-}
+    pid_t pid = fork();
 
+    // Fork failed
+    if (pid < 0) {
+        return pid;
+    }
+
+    // Child
+    if (pid == 0) {
+        char *const envp[] = {env, NULL};
+        if (execve(command, argv, envp) == -1) {
+            exit(-1);
+        }
+    }
+
+    return pid;
+}
