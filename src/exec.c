@@ -27,9 +27,8 @@ pid_t execute_process(const char *command, char **argv) {
     // Child
     if (pid == 0) {
         char *const envp[] = {env, NULL};
-        if (execve(command, argv, envp) == -1) {
-            exit(-1);
-        }
+        execve(command, argv, envp);
+        return -1;
     }
 
     return pid;

@@ -11,11 +11,7 @@
  * Hint: what should the initial values of each of the attributes be input
  *       attributes be?
  */
-void userinput_init() {
-    input_length = 0;
-    num_tokens = 0;
-    tokens = NULL;
-}
+void userinput_init() { userinput_reset(); }
 
 /*
  * TODO: implement me!
@@ -23,10 +19,13 @@ void userinput_init() {
  * Hint: is there anything else that can be reused here?
  */
 void userinput_reset() {
+    memset(input_buffer, 0, BUFFER_SIZE);
+    input_length = 0;
     if (tokens != NULL) {
         free(tokens);
+        tokens = NULL;
     }
-    userinput_init();
+    num_tokens = 0;
 }
 
 /*
@@ -83,7 +82,7 @@ long handle_user_input(const char *user_input, long strlen, char **command) {
     clean_input[left] = '\0';
 
     // Shrink space
-    char *optimized = realloc(clean_input, left);
+    char *optimized = realloc(clean_input, left + 1);
     if (optimized == NULL) {
         return -1;
     }
@@ -92,6 +91,7 @@ long handle_user_input(const char *user_input, long strlen, char **command) {
     // Pass clean optimal string to the callee
     *command = clean_input;
 
+    input_length = left;
     return left;
 }
 
@@ -109,7 +109,7 @@ long tokenize_input(char *str, long strlen, char ***tokens) {
     }
 
     // Tokenize (spaces become '\0')
-    *tokens = malloc((strlen + 1) *
+    *tokens = malloc((strlen + 2) *
                      sizeof(char *)); // Create pointers to every string
     if (*tokens == NULL) {
         return -1;
